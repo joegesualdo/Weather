@@ -11,7 +11,7 @@
 #import <UIKit/UIKit.h>
 
 // This means the class will implement the NSXMLParserDelegate protocol. You will implement these methods soon, but first you need to add a few properties.
-@interface WTTableViewController:UITableViewController <NSXMLParserDelegate>
+@interface WTTableViewController : UITableViewController<NSXMLParserDelegate, CLLocationManagerDelegate, UIActionSheetDelegate>
 
 // Actions
 - (IBAction)clear:(id)sender;

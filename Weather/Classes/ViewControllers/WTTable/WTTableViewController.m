@@ -199,9 +199,15 @@ static NSString * const BaseURLString = @"http://www.raywenderlich.com/demos/wea
   [operation start];
 }
 
+// This method creates and displays an action sheet asking the user to choose between a GET and POST request.
 - (IBAction)clientTapped:(id)sender
 {
-    
+  UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:@"AFHTTPSessionManager"
+                                                           delegate:self
+                                                  cancelButtonTitle:@"Cancel"
+                                             destructiveButtonTitle:nil
+                                                  otherButtonTitles:@"HTTP GET", @"HTTP POST", nil];
+  [actionSheet showFromBarButtonItem:sender animated:YES];
 }
 
 - (IBAction)apiTapped:(id)sender
@@ -380,6 +386,57 @@ static NSString * const BaseURLString = @"http://www.raywenderlich.com/demos/wea
   self.weather = @{@"data": self.xmlWeather};
   self.title = @"XML Retrieved";
   [self.tableView reloadData];
+}
+
+#pragma mark - ActionSheet delegate methods
+
+// In this example you’re requesting JSON responses, but you can easily request either of the other two formats as discussed previously (xml, plist)
+- (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex
+{
+  if (buttonIndex == [actionSheet cancelButtonIndex]) {
+    // User pressed cancel -- abort
+    return;
+  }
+  
+  // You first set up the baseURL and the dictionary of parameters.
+  NSURL *baseURL = [NSURL URLWithString:BaseURLString];
+  NSDictionary *parameters = @{@"format": @"json"};
+  
+  // You then create an instance of AFHTTPSessionManager and set its responseSerializer to the default JSON serializer, similar to the previous JSON example.
+  AFHTTPSessionManager *manager = [[AFHTTPSessionManager alloc] initWithBaseURL:baseURL];
+  manager.responseSerializer = [AFJSONResponseSerializer serializer];
+  
+  // If the user presses the button index for HTTP GET, you call the GET method on the manager, passing in the parameters and usual pair of success and failure blocks.
+  if (buttonIndex == 0) {
+    [manager GET:@"weather.php" parameters:parameters success:^(NSURLSessionDataTask *task, id responseObject) {
+      self.weather = responseObject;
+      self.title = @"HTTP GET";
+      [self.tableView reloadData];
+    } failure:^(NSURLSessionDataTask *task, NSError *error) {
+      UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Error Retrieving Weather"
+                                                          message:[error localizedDescription]
+                                                         delegate:nil
+                                                cancelButtonTitle:@"Ok"
+                                                otherButtonTitles:nil];
+      [alertView show];
+    }];
+  }
+  
+  // You do the same with the POST version.
+  else if (buttonIndex == 1) {
+    [manager POST:@"weather.php" parameters:parameters success:^(NSURLSessionDataTask *task, id responseObject) {
+      self.weather = responseObject;
+      self.title = @"HTTP POST";
+      [self.tableView reloadData];
+    } failure:^(NSURLSessionDataTask *task, NSError *error) {
+      UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Error Retrieving Weather"
+                                                          message:[error localizedDescription]
+                                                         delegate:nil
+                                                cancelButtonTitle:@"Ok"
+                                                otherButtonTitles:nil];
+      [alertView show];
+    }];
+  }
 }
 
 @end
