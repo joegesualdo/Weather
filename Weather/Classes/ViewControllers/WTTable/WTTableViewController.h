@@ -9,9 +9,11 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "WeatherHTTPClient.h"
 
 // This means the class will implement the NSXMLParserDelegate protocol. You will implement these methods soon, but first you need to add a few properties.
-@interface WTTableViewController : UITableViewController<NSXMLParserDelegate, CLLocationManagerDelegate, UIActionSheetDelegate>
+// The WeatherHTTPClient we created is expecting a location and has a defined delegate protocol, so you need to update the WTTableViewController class to take advantage of this.
+@interface WTTableViewController : UITableViewController <NSXMLParserDelegate, CLLocationManagerDelegate, UIActionSheetDelegate, WeatherHTTPClientDelegate>
 
 // Actions
 - (IBAction)clear:(id)sender;
@@ -20,5 +22,7 @@
 - (IBAction)xmlTapped:(id)sender;
 - (IBAction)clientTapped:(id)sender;
 - (IBAction)apiTapped:(id)sender;
+
+@property (nonatomic, strong) CLLocationManager *locationManager;
 
 @end

@@ -58,6 +58,10 @@ static NSString * const BaseURLString = @"http://www.raywenderlich.com/demos/wea
  
     // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
     // self.navigationItem.rightBarButtonItem = self.editButtonItem;
+  
+  // These lines initialize the Core Location manager to determine the user’s location when the view loads. The Core Location manager then reports that location via a delegate callback. Add the following method to the implementation:
+  self.locationManager = [[CLLocationManager alloc] init];
+  self.locationManager.delegate = self;
 }
 
 - (void)didReceiveMemoryWarning
@@ -212,7 +216,7 @@ static NSString * const BaseURLString = @"http://www.raywenderlich.com/demos/wea
 
 - (IBAction)apiTapped:(id)sender
 {
-    
+  [self.locationManager startUpdatingLocation];
 }
 
 #pragma mark - Table view data source
@@ -438,5 +442,47 @@ static NSString * const BaseURLString = @"http://www.raywenderlich.com/demos/wea
     }];
   }
 }
+
+#pragma mark - CoreLocation delegate method
+
+// When there’s an update to the user’s whereabouts, we want to call the singleton WeatherHTTPClient instance to request the weather for the current location.
+- (void)locationManager:(CLLocationManager *)manager didUpdateLocations:(NSArray *)locations
+{
+  // Last object contains the most recent location
+  CLLocation *newLocation = [locations lastObject];
+  
+  // If the location is more than 5 minutes old, ignore it
+  if([newLocation.timestamp timeIntervalSinceNow] > 300)
+    return;
+  
+  [self.locationManager stopUpdatingLocation];
+  
+  WeatherHTTPClient *client = [WeatherHTTPClient sharedWeatherHTTPClient];
+  client.delegate = self;
+  [client updateWeatherAtLocation:newLocation forNumberOfDays:5];
+}
+
+#pragma mark - WTTableView delegate methods
+
+// WeatherHTTPClient has two delegate methods itself that you need to implement.
+
+// When the WeatherHTTPClient succeeds, you update the weather data and reload the table view.
+- (void)weatherHTTPClient:(WeatherHTTPClient *)client didUpdateWithWeather:(id)weather
+{
+  self.weather = weather;
+  self.title = @"API Updated";
+  [self.tableView reloadData];
+}
+
+// In case of a network error, you display an error message.
+- (void)weatherHTTPClient:(WeatherHTTPClient *)client didFailWithError:(NSError *)error
+{
+  UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Error Retrieving Weather"
+                                                      message:[NSString stringWithFormat:@"%@",error]
+                                                     delegate:nil
+                                            cancelButtonTitle:@"OK" otherButtonTitles:nil];
+  [alertView show];
+}
+
 
 @end

@@ -15,6 +15,7 @@
 		D233D0CC16B405C3005212DE /* WeatherAnimationViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D233D0CB16B405C3005212DE /* WeatherAnimationViewController.m */; };
 		D233D0D216B405D5005212DE /* NSDictionary+weather_package.m in Sources */ = {isa = PBXBuildFile; fileRef = D233D0CF16B405D5005212DE /* NSDictionary+weather_package.m */; };
 		D233D0D316B405D5005212DE /* NSDictionary+weather.m in Sources */ = {isa = PBXBuildFile; fileRef = D233D0D116B405D5005212DE /* NSDictionary+weather.m */; };
+		E919690619C74AF200442CB6 /* WeatherHTTPClient.m in Sources */ = {isa = PBXBuildFile; fileRef = E919690519C74AF200442CB6 /* WeatherHTTPClient.m */; };
 		F957DCDE185F27ED008DCB3B /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F957DCDD185F27ED008DCB3B /* Images.xcassets */; };
 		F957DCE2185F35B8008DCB3B /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F957DCE0185F35B8008DCB3B /* Foundation.framework */; };
 		F957DCE4185F35C7008DCB3B /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F957DCE3185F35C7008DCB3B /* CoreGraphics.framework */; };
@@ -43,6 +44,8 @@
 		D233D0CF16B405D5005212DE /* NSDictionary+weather_package.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSDictionary+weather_package.m"; sourceTree = "<group>"; };
 		D233D0D016B405D5005212DE /* NSDictionary+weather.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSDictionary+weather.h"; sourceTree = "<group>"; };
 		D233D0D116B405D5005212DE /* NSDictionary+weather.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSDictionary+weather.m"; sourceTree = "<group>"; };
+		E919690419C74AF200442CB6 /* WeatherHTTPClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WeatherHTTPClient.h; sourceTree = "<group>"; };
+		E919690519C74AF200442CB6 /* WeatherHTTPClient.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WeatherHTTPClient.m; sourceTree = "<group>"; };
 		F957DCDD185F27ED008DCB3B /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		F957DCE0185F35B8008DCB3B /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		F957DCE3185F35C7008DCB3B /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -143,6 +146,8 @@
 				E9A3CB9019C73AF4003D239E /* Models */,
 				E9A3CB8F19C73AEF003D239E /* ViewControllers */,
 				E9A3CB8E19C73AEC003D239E /* Views */,
+				E919690419C74AF200442CB6 /* WeatherHTTPClient.h */,
+				E919690519C74AF200442CB6 /* WeatherHTTPClient.m */,
 			);
 			path = Classes;
 			sourceTree = "<group>";
@@ -371,6 +376,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D233D07C16B400EF005212DE /* main.m in Sources */,
+				E919690619C74AF200442CB6 /* WeatherHTTPClient.m in Sources */,
 				D233D08016B400EF005212DE /* WTAppDelegate.m in Sources */,
 				D233D09416B4011B005212DE /* WTTableViewController.m in Sources */,
 				D233D0CC16B405C3005212DE /* WeatherAnimationViewController.m in Sources */,
