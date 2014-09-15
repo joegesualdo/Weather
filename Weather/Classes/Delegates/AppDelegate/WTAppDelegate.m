@@ -9,13 +9,16 @@
 //
 
 #import "WTAppDelegate.h"
+// AFNetworking can provide your users with feedback using AFNetworkingActivityIndicatorManager when doing network operations so they know the app hasn’t stalled or crashed.
+#import "AFNetworkActivityIndicatorManager.h"
 
 @implementation WTAppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-    // Override point for customization after application launch.
-    return YES;
+  // Enabling the sharedManager automatically displays the network activity indicator whenever a new operation is underway. You won’t need to manage it separately for every request you make. This indicator is in the status bar next to the 'wifi or 3g signal'
+  [AFNetworkActivityIndicatorManager sharedManager].enabled = YES;
+  return YES;
 }
 							
 - (void)applicationWillResignActive:(UIApplication *)application
