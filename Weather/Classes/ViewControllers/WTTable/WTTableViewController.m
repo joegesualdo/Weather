@@ -22,7 +22,17 @@
 static NSString * const BaseURLString = @"http://www.raywenderlich.com/demos/weather_sample/";
 
 @interface WTTableViewController ()
+
 @property(strong) NSDictionary *weather;
+
+// These properties will come in handy when you’re parsing the XML.
+
+// current section being parsed
+@property(nonatomic, strong) NSMutableDictionary *currentDictionary;
+// completed parsed xml response
+@property(nonatomic, strong) NSMutableDictionary *xmlWeather;
+@property(nonatomic, strong) NSString *elementName;
+@property(nonatomic, strong) NSMutableString *outstring;
 @end
 
 @implementation WTTableViewController
@@ -155,7 +165,36 @@ static NSString * const BaseURLString = @"http://www.raywenderlich.com/demos/wea
 
 - (IBAction)xmlTapped:(id)sender
 {
+  NSString *string = [NSString stringWithFormat:@"%@weather.php?format=xml", BaseURLString];
+  NSURL *url = [NSURL URLWithString:string];
+  NSURLRequest *request = [NSURLRequest requestWithURL:url];
+  
+  AFHTTPRequestOperation *operation = [[AFHTTPRequestOperation alloc] initWithRequest:request];
+  
+  // Make sure to set the responseSerializer correctly
+  operation.responseSerializer = [AFXMLParserResponseSerializer serializer];
+  
+  [operation setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject) {
+    //  The biggest change is that in the success block you don’t get a nice, preprocessed NSDictionary object passed to you. Instead, responseObject is an instance of NSXMLParser, which you will use to do the heavy lifting in parsing the XML.
+    NSXMLParser *XMLParser = (NSXMLParser *)responseObject;
+    [XMLParser setShouldProcessNamespaces:YES];
     
+    // You’ll need to implement a set of delegate methods for NXMLParser to be able to parse the XML. Notice that XMLParser’s delegate is set to self, so you will need to add NSXMLParser’s delegate methods to WTTableViewController to handle the parsing.
+     XMLParser.delegate = self;
+     [XMLParser parse];
+    
+  } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+    
+    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Error Retrieving Weather"
+                                                        message:[error localizedDescription]
+                                                       delegate:nil
+                                              cancelButtonTitle:@"Ok"
+                                              otherButtonTitles:nil];
+    [alertView show];
+    
+  }];
+  
+  [operation start];
 }
 
 - (IBAction)clientTapped:(id)sender
@@ -231,6 +270,93 @@ static NSString * const BaseURLString = @"http://www.raywenderlich.com/demos/wea
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
     // Navigation logic may go here. Create and push another view controller.
+}
+
+#pragma mark - NSXMLParserDelegate methods
+
+// The parser calls this method when it first starts parsing. When this happens, you set self.xmlWeather to a new dictionary, which will hold hold the XML data.
+- (void)parserDidStartDocument:(NSXMLParser *)parser
+{
+  self.xmlWeather = [NSMutableDictionary dictionary];
+}
+
+// The parser calls this method when it finds a new element start tag.
+- (void)parser:(NSXMLParser *)parser didStartElement:(NSString *)elementName namespaceURI:(NSString *)namespaceURI qualifiedName:(NSString *)qName attributes:(NSDictionary *)attributeDict
+{
+  // you keep track of the new element’s name as self.elementName
+  self.elementName = qName;
+  
+  // set self.currentDictionary to a new dictionary if the element name represents the start of a new weather forecast.
+  if([qName isEqualToString:@"current_condition"] ||
+     [qName isEqualToString:@"weather"] ||
+     [qName isEqualToString:@"request"]) {
+    self.currentDictionary = [NSMutableDictionary dictionary];
+  }
+  
+  // reset outstring as a new mutable string in preparation for new XML to be received related to the element.
+  self.outstring = [NSMutableString string];
+}
+
+// As the name suggests, the parser calls this method when it finds new characters on an XML element.
+- (void)parser:(NSXMLParser *)parser foundCharacters:(NSString *)string
+{
+  if (!self.elementName)
+    return;
+  
+  // You append the new characters to outstring, so they can be processed once the XML tag is closed.
+  [self.outstring appendFormat:@"%@", string];
+}
+
+// This method is called when an end element tag is encountered. When that happens, you check for a few special tags:
+- (void)parser:(NSXMLParser *)parser didEndElement:(NSString *)elementName namespaceURI:(NSString *)namespaceURI qualifiedName:(NSString *)qName
+{
+  // The current_condition element indicates you have the weather for the current day. You add this directly to the xmlWeather dictionary.
+  if ([qName isEqualToString:@"current_condition"] ||
+      [qName isEqualToString:@"request"]) {
+    self.xmlWeather[qName] = @[self.currentDictionary];
+    self.currentDictionary = nil;
+  }
+  // The weather element means you have the weather for a subsequent day. While there is only one current day, there may be several subsequent days, so you add this weather information to an array.
+  else if ([qName isEqualToString:@"weather"]) {
+    
+    // Initialize the list of weather items if it doesn't exist
+    NSMutableArray *array = self.xmlWeather[@"weather"] ?: [NSMutableArray array];
+    
+    // Add the current weather object
+    [array addObject:self.currentDictionary];
+    
+    // Set the new array to the "weather" key on xmlWeather dictionary
+    self.xmlWeather[@"weather"] = array;
+    
+    self.currentDictionary = nil;
+  }
+  // The value tag only appears inside other tags, so it’s safe to skip over it.
+  else if ([qName isEqualToString:@"value"]) {
+    // Ignore value tags, they only appear in the two conditions below
+  }
+  // The weatherDesc and weatherIconUrl element values need to be boxed inside an array before they can be stored. This way, they will match how the JSON and plist versions of the data are structured exactly.
+  else if ([qName isEqualToString:@"weatherDesc"] ||
+           [qName isEqualToString:@"weatherIconUrl"]) {
+    NSDictionary *dictionary = @{@"value": self.outstring};
+    NSArray *array = @[dictionary];
+    self.currentDictionary[qName] = array;
+  }
+  // All other elements can be stored as is.
+  else if (qName) {
+    self.currentDictionary[qName] = self.outstring;
+  }
+  
+	self.elementName = nil;
+}
+
+// The parser calls this method when it reaches the end of the document.
+- (void) parserDidEndDocument:(NSXMLParser *)parser
+{
+  //  At this point, the xmlWeather dictionary that you’ve been building is complete, so the table view can be reloaded.
+  // Wrapping xmlWeather inside another NSDictionary might seem redundant, but this ensures the format matches up exactly with the JSON and plist versions. This way, all three data formats can be displayed with the same code!
+  self.weather = @{@"data": self.xmlWeather};
+  self.title = @"XML Retrieved";
+  [self.tableView reloadData];
 }
 
 @end
