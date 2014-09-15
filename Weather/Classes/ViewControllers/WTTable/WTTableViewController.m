@@ -12,6 +12,8 @@
 #import "WeatherAnimationViewController.h"
 #import "NSDictionary+weather.h"
 #import "NSDictionary+weather_package.h"
+// AFNetworking adds a category to UIImageView that lets you load images asynchronously, meaning the UI will remain responsive while images are downloaded in the background. To take advantage of this, add the category import
+#import "UIImageView+AFNetworking.h"
 
 // base URL of the test script.
 // the URL to an incredibly simple “web service” that I created for you for this tutorial.
@@ -259,7 +261,28 @@ static NSString * const BaseURLString = @"http://www.raywenderlich.com/demos/wea
   
   cell.textLabel.text = [daysWeather weatherDescription];
   
-  // You will add code here later to customize the cell, but it's good for now.
+  // ==========================
+  // This code will set the image using AFNetworking to load images asynchronously, meaning the UI will remain responsive while images are downloaded in the background.
+  
+  // UIImageView+AFNetworking makes setImageWithURLRequest: and several other related methods available to you.
+  NSURL *url = [NSURL URLWithString:daysWeather.weatherIconURL];
+  NSURLRequest *request = [NSURLRequest requestWithURL:url];
+  // When the cell is first created, its image view will display the placeholder image until the real image has finished downloading.
+  UIImage *placeholderImage = [UIImage imageNamed:@"placeholder"];
+
+  __weak UITableViewCell *weakCell = cell;
+
+  [cell.imageView setImageWithURLRequest:request
+            placeholderImage:placeholderImage
+                     success:^(NSURLRequest *request, NSHTTPURLResponse *response,
+                               UIImage *image) {
+                       // Both the success and failure blocks are optional, but if you do provide a success block, you must explicitly set the image property on the image view (or else it won’t be set). If you don’t provide a success block, the image will automatically be set for you.
+
+                         weakCell.imageView.image = image;
+                         [weakCell setNeedsLayout];
+                     }
+                     failure:nil];
+  // ==========================
   
   return cell;
 }
